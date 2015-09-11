@@ -1,5 +1,7 @@
 class MovieData 
 	attr_reader :testing_data, :training_data
+
+	#
 	def initialize(training, test = nil)
 		if test != nil
 			testing_file = test
@@ -11,7 +13,7 @@ class MovieData
 			@training_data = load_data(train_file)
 		end
 	end
-
+	#
 	def load_data(file)
 		user_movie = Hash.new
 		#going through each line
@@ -31,8 +33,8 @@ class MovieData
 		end
 		return user_movie
 	end
-	#the test file will only be used for predictions. Thus, the data needs to be stored accordingly in the format [u,m,r,p] to be more useful in the future
-	def load_data_for_test(file_name)
+	#
+	def load_data_for_test(file_name) #the test file will only be used for predictions. Thus, the data needs to be stored accordingly in the format [u,m,r,p] to be more useful in the future
 		file = open(file_name)		
 		predictions = Array.new
 	 	file.each_line do |line|
@@ -47,7 +49,7 @@ class MovieData
 	def movies(user)
 		return training_data[user].keys
 	end
-	
+	#
 	def rating(user, movie)
 		all_movies = movies(user) #seeing if the user watched the movie by looking through the array of keys from the movie_id => movie_rating hash 
 		if all_movies.include?(movie)
@@ -56,7 +58,7 @@ class MovieData
 			return 0
 		end
 	end
-
+	#
 	def viewers(movie)
 		viewers = Array.new
 		usr_ids = training_data.keys 
@@ -68,8 +70,8 @@ class MovieData
 		return viewers
 	end
 
-	#returns floating point between 1 and 5 as an estimate on what a user would rate a movie
-	def predict(user, movie)
+	#	
+	def predict(user, movie)  #returns floating point between 1 and 5 as an estimate on what a user would rate a movie
 		people_watched_movie = viewers(movie)
 		user_counter = 0
 		similar = Array.new
@@ -89,12 +91,12 @@ class MovieData
 			return (rating(most_similar_user, movie) + user_mean(user)) / 2   #finding the average rating that the user usually gives, then averaging it together with the rating of the most similar use who also watched ths current movie in question
 		end
 	end
-	
+	#
 	def similarity(user1, user2)
 		in_common = movies(user1) & movies(user2) #contains the commons elements of both movies that they watched
 		return in_common.size
 	end
-
+	#
 	def user_mean(user)
 		total_rating_average = 0.0
 		count = 0
@@ -106,8 +108,8 @@ class MovieData
 		return total_rating_average/count
 	end
 
-	#because of the method t.to_a, will be sorting the array the predictions into [u,m,r,p] form
-	 def run_test(k = nil)
+	#
+	 def run_test(k = nil) #because of the method t.to_a, will be sorting the array the predictions into [u,m,r,p] form
 	 	k_counter = 0
 	 	new_array_k = Array.new
 	 	if k == nil
@@ -130,10 +132,11 @@ end
 
 class MovieTest
 	attr_reader :predictions
-
+	#
 	def initialize(predictions)
 		@predictions = predictions
 	end
+	#
 	def mean 
 		#average = the total prediction error  / the amount of predictions 
 		total_prediction_error = 0.0
@@ -144,7 +147,7 @@ class MovieTest
 		end
 		return total_prediction_error / amount_of_predictions
 	end
-
+	#
 	def stddev 
 		mean_value = mean
 		total_variance = 0.0
@@ -154,6 +157,7 @@ class MovieTest
 		return Math.sqrt(total_variance/predictions.size) #take square root of the  mean of those squared differences.
 	end
 
+	#
 	def rms
 		#take the mean squared of the error and then square root it
 		total_error = 0.0
@@ -163,18 +167,24 @@ class MovieTest
 		end
 		return Math.sqrt(total_error/predictions.size)
 	end
-
+	#
 	def to_a
 		return predictions
 	end
 
 end
 
-z = MovieData.new('u1.base', 'u1.test')
-tests = z.run_test(39)
-
+z = MovieData.new('ml-100k/u1.base', 'ml-100k/u1.test')
+puts "The time that it takes to run when k = 50"
+first_time = Time.now
+tests = z.run_test(50)
+second_time = Time.now
+puts second_time - first_time
+puts "The average prediction error when k = 50:"
 puts tests.mean
+puts "The standard deviation of the error when k = 50"
 puts tests.stddev
+puts "The root mean square error of the prediction when k = 50"
 puts tests.rms
 
 
